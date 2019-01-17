@@ -1,10 +1,8 @@
-
-
 # import statistics
 from statistics import *
 from numpy import *
 from random import *
-
+from operator import itemgetter
 
 # 0 日班
 # 1 夜班
@@ -15,7 +13,7 @@ from random import *
 
 CROSSOVER_RATE = 0.5
 MUTATION_RATE = 0.1
-ITERATION_TIME = 5     #迭代次數
+ITERATION_TIME = 20     #迭代次數
 
 NUMBER_OF_GENETIC = 10   #基因數量
 NUMBER_OF_WORKER = 17    #工作人數
@@ -39,9 +37,9 @@ def targetFunction(teamSchedule):
     # 大夜班
     grave_shift.append(len([i for i in teamSchedule[i] if i == 2]))
 
-  # print('day_shift: ',day_shift)
   target_value = round(variance(day_shift)+variance(later_shift)+variance(grave_shift), 10)
   print('Total variance: ', target_value )
+  return target_value
 
 
 # 單點交配
@@ -99,22 +97,58 @@ def generateEachWorker():
     holiday=0
   return each_worker
 
+def initializeGenetic():
+  for i in range(NUMBER_OF_GENETIC):
+    one_genetic = []
+    for j in range(NUMBER_OF_WORKER):
+      one_genetic.append(generateEachWorker())
+    all_genetic.append( one_genetic )
 
-def generateGenetic():
-  one_genetic = []
-  for i in range(NUMBER_OF_WORKER):
-    one_genetic.append(generateEachWorker())
-  return one_genetic
+
+def selectNextGeneration():
+  global all_genetic
+  temp_all_genetic = []
+  biggestTargetValue = 0
+  population = []
+
+  for j in range(NUMBER_OF_GENETIC):
+    targetValue = targetFunction(all_genetic[j])
+    if(biggestTargetValue < targetValue):
+      biggestTargetValue = targetValue
+    population.append(targetValue)
+
+  # 如果全部基因都一樣就不用演進了
+  different = True
+  for i in range(1,len(population)):
+    d = population[0]
+    if(d!=population[i]):
+      different = False
+
+  if different:
+    return
+
+  for i in range(len(population)):
+    population[i] = biggestTargetValue - population[i]
+
+  for i in range(NUMBER_OF_GENETIC):
+    x = choices( range(len(population)), population )
+    temp_all_genetic.append(all_genetic[x[0]])
+  all_genetic = temp_all_genetic
+  # all_genetic = sorted(all_genetic, key=itemgetter(NUMBER_OF_WORKER) )
+
+  return 1
 
 def main():
-  for i in range(NUMBER_OF_GENETIC):
-    all_genetic.append( generateGenetic() )
-      
+  # 初始化
+  initializeGenetic()
+
   for i in range(ITERATION_TIME):
-    print('============= ', (i+1) ,' =============')
-    for j in range(NUMBER_OF_GENETIC):
-      targetFunction(all_genetic[j])
-      crossover()
+    print('============= ITERATION ', (i+1) ,' =============')
+    selectNextGeneration()
+
+    # for j in range(NUMBER_OF_GENETIC):
+    #   targetFunction(all_genetic[j])
+    #   crossover()
 
 if __name__ == "__main__":
     main()
