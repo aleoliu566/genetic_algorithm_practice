@@ -1,4 +1,3 @@
-# import statistics
 from statistics import *
 from numpy import *
 from random import *
@@ -8,21 +7,18 @@ from operator import itemgetter
 # 1 夜班
 # 2 大夜班
 # 3 放假
-# 4 休假
 
-
-CROSSOVER_RATE = 0.5
+CROSSOVER_RATE = 0.8
 MUTATION_RATE = 0.1
 ITERATION_TIME = 20     #迭代次數
-
 NUMBER_OF_GENETIC = 10   #基因數量
-NUMBER_OF_WORKER = 17    #工作人數
+NUMBER_OF_WORKER = 18    #工作人數
 
 # 染色體集合
 all_genetic = []
 best_genetic = []
 
-def targetFunction(teamSchedule):
+def targetFunction(teamSchedule, showValue=False):
   # O -> 休假次數
   # µ0 -> 平均休假次數
   # 變異數
@@ -38,52 +34,61 @@ def targetFunction(teamSchedule):
     grave_shift.append(len([i for i in teamSchedule[i] if i == 2]))
 
   target_value = round(variance(day_shift)+variance(later_shift)+variance(grave_shift), 10)
-  print('Total variance: ', target_value )
+  if showValue:
+    print('Total variance: ', target_value )
   return target_value
 
 
-# 單點交配
-def crossover():
-  # 隨機取兩個個體
-  first = int(random() * (NUMBER_OF_GENETIC))-1
-  second = int(random() * (NUMBER_OF_GENETIC))-1
-  while(first==second):
-    second = int(random() * (NUMBER_OF_GENETIC))-1
-
-  crossover_genetic_1 = all_genetic[first]
-  crossover_genetic_2 = all_genetic[second]
-
+def crossover(): # 單點交配
   crossover_if = random()
-  if( crossover_if > CROSSOVER_RATE):
-    # 不交配
-    return 1
+  if( crossover_if > CROSSOVER_RATE): # 判斷是否要交配
+    print('不交配')
+    return
   else:
-    # 取第幾個工人
-    crossover_worker = int(random() * (NUMBER_OF_WORKER-1) )
-    # 取工人第幾天的工作
-    crossover_date = int(random() * (28-1) )
+    # 隨機取兩個個體
+    first = int(random() * (NUMBER_OF_GENETIC))-1
+    second = int(random() * (NUMBER_OF_GENETIC))-1
+    while(first==second):
+      second = int(random() * (NUMBER_OF_GENETIC))-1
+    crossover_genetic_1 = all_genetic[first]
+    crossover_genetic_2 = all_genetic[second]
+
+    # 取得突變位置
+    crossover_worker = int(random() * (NUMBER_OF_WORKER-1) ) # 取第幾個工人
+    crossover_date = int(random() * (28-1) ) # 取工人第幾天的工作
 
     for i in range(crossover_date):
       temp = crossover_genetic_1[crossover_worker][i]
-      crossover_genetic_1[crossover_worker][i] = crossover_genetic_2[crossover_worker+1][i]
-      crossover_genetic_2[crossover_worker+1][i] = temp
-
-    # 取得突變位置
-  return 1
+      crossover_genetic_1[crossover_worker][i] = crossover_genetic_2[crossover_worker][i]
+      crossover_genetic_2[crossover_worker][i] = temp
+    print('交配')
+  return
 
 # 每個染色體隨意找地方把一個值改成另一個
 def muation():
-  pass
+  global all_genetic
+  # muation_if = random()
+  # if( muation_if > MUTATION_RATE): # 判斷是否要突變
+  #   print('不突變')
+  #   return
+  # else:
+
+  genetic_mutation = int(random() * (NUMBER_OF_GENETIC-1))
+  worker_mutation = int(random() * (NUMBER_OF_WORKER-1))
+
+  new_genetic = generateEachWorker()[:]
+  all_genetic[genetic_mutation][worker_mutation] = new_genetic[:]
+  print('突變')
+  return
 
 def generateEachWorker():
   each_worker = []
 
   workDay = 0
-  holiday = 0 #放假
-  vacation = 0 #休假
+  holiday = 0 #放假數量
+  vacation = 0 #休假數量
   for i in range(4):
     for j in range(7):
-
       if(holiday>=2):
         work_type = int(random() * 3)
       else:
@@ -101,21 +106,21 @@ def initializeGenetic():
   for i in range(NUMBER_OF_GENETIC):
     one_genetic = []
     for j in range(NUMBER_OF_WORKER):
-      one_genetic.append(generateEachWorker())
-    all_genetic.append( one_genetic )
+      one_genetic.append(generateEachWorker()[:])
+    all_genetic.append( one_genetic[:] )
 
 
-def selectNextGeneration():
+def selectNextGeneration(number_of_generation):
   global all_genetic
   temp_all_genetic = []
-  biggestTargetValue = 0
+  biggestTargetValue = -1
   population = []
 
   for j in range(NUMBER_OF_GENETIC):
     targetValue = targetFunction(all_genetic[j])
+    population.append(targetValue)
     if(biggestTargetValue < targetValue):
       biggestTargetValue = targetValue
-    population.append(targetValue)
 
   # 如果全部基因都一樣就不用演進了
   different = True
@@ -132,23 +137,22 @@ def selectNextGeneration():
 
   for i in range(NUMBER_OF_GENETIC):
     x = choices( range(len(population)), population )
-    temp_all_genetic.append(all_genetic[x[0]])
-  all_genetic = temp_all_genetic
-  # all_genetic = sorted(all_genetic, key=itemgetter(NUMBER_OF_WORKER) )
+    temp_all_genetic.append(all_genetic[x[0]][:] )
+  all_genetic = temp_all_genetic[:]
 
-  return 1
+  print('\n','============= ITERATION ', number_of_generation ,' =============')
+  for i in range(NUMBER_OF_GENETIC): # 印出genetic 變異數
+    targetValue = targetFunction(all_genetic[i], True)
+  return
 
 def main():
-  # 初始化
-  initializeGenetic()
-
+  initializeGenetic() # 初始化: 建立所有基因
+  # 可以設定進步幅度不大的話就停下來，例如：在20代中，無法進步1%就停下來
   for i in range(ITERATION_TIME):
-    print('============= ITERATION ', (i+1) ,' =============')
-    selectNextGeneration()
-
-    # for j in range(NUMBER_OF_GENETIC):
-    #   targetFunction(all_genetic[j])
-    #   crossover()
+    selectNextGeneration(i+1) # 選擇: 選擇下一代基因
+    crossover() # 交配
+    muation() # 突變 => 突變一點太小了，這邊直接突變一個工人的全部
+    muation() # 
 
 if __name__ == "__main__":
     main()
