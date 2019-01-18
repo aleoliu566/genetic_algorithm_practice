@@ -122,7 +122,7 @@ def selectNextGeneration(number_of_generation):
     if(biggestTargetValue < targetValue):
       biggestTargetValue = targetValue
 
-  # 如果全部基因都一樣就不用演進了
+  # 如果全部基因都一樣沒有交配或突變就不用演進了
   different = True
   for i in range(1,len(population)):
     d = population[0]
