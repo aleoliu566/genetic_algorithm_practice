@@ -14,9 +14,11 @@ ITERATION_TIME = 20     #迭代次數
 NUMBER_OF_GENETIC = 10   #基因數量
 NUMBER_OF_WORKER = 18    #工作人數
 
+
 # 染色體集合
 all_genetic = []
 best_genetic = []
+best_genetic_target_value = 1000000000000
 
 def targetFunction(teamSchedule, showValue=False):
   # O -> 休假次數
@@ -108,10 +110,18 @@ def initializeGenetic():
     for j in range(NUMBER_OF_WORKER):
       one_genetic.append(generateEachWorker()[:])
     all_genetic.append( one_genetic[:] )
-
+    
+    # 記錄最好的基因
+    if(i == 0):
+      best_genetic = one_genetic[:]
+      best_genetic_target_value = targetFunction(best_genetic)
+    elif(best_genetic_target_value > targetFunction(one_genetic) ):
+      best_genetic = one_genetic[:]
+      best_genetic_target_value = targetFunction(best_genetic)
 
 def selectNextGeneration(number_of_generation):
   global all_genetic
+  global best_genetic_target_value
   temp_all_genetic = []
   biggestTargetValue = -1
   population = []
@@ -143,6 +153,12 @@ def selectNextGeneration(number_of_generation):
   print('\n','============= ITERATION ', number_of_generation ,' =============')
   for i in range(NUMBER_OF_GENETIC): # 印出genetic 變異數
     targetValue = targetFunction(all_genetic[i], True)
+
+    # 記錄最好的基因
+    if(best_genetic_target_value > targetFunction(all_genetic[i]) ):
+      best_genetic = all_genetic[i]
+      best_genetic_target_value = targetFunction(best_genetic)
+  print('Best Genetic Target Value: ', best_genetic_target_value)
   return
 
 def main():
