@@ -52,6 +52,31 @@ def three_work_type_score(teamSchedule,showValue):
   score = dayShiftScore + laterShiftScore + graveShiftScore
   return score
 
+def restrict_dayoff_work(genetic_list, number_of_worker, work_day):
+  # 避免安排休假-工作-休假
+  # 3 + (0,1,2) + 3
+
+  penalty = 0
+
+  for i in range(number_of_worker):
+    for j in range(0,work_day-2):
+
+      count = 0
+
+      day1 = genetic_list[i][j]
+      day2 = genetic_list[i][j+1]
+      day3 = genetic_list[i][j+2]
+      
+      # 避免  3 - (0,1,2) - 3
+      if (day1==3 and day3==3):
+        if day2==3:
+          pass
+        else: # day2 == 0,1,2
+          count += 1
+
+    penalty = 10*count
+    return penalty
+
 def targetFunction(teamSchedule, showValue=False):
   # µ0 -> 平均休假次數
   # 變異數
@@ -70,8 +95,9 @@ def targetFunction(teamSchedule, showValue=False):
     day_off.append(len([i for i in teamSchedule[i] if i == 3]))
 
   ShiftNumberBasicScore = three_work_type_score(teamSchedule,showValue)
+  Penalty = restrict_dayoff_work(teamSchedule, NUMBER_OF_WORKER, WORK_DAY)
 
-  target_value = round(variance(day_shift)+variance(later_shift)+variance(grave_shift)+variance(day_off), 10) + ShiftNumberBasicScore
+  target_value = round(variance(day_shift)+variance(later_shift)+variance(grave_shift)+variance(day_off), 10) + ShiftNumberBasicScore + Penalty
   if showValue:
     print('Total variance: ', target_value )
   return target_value
