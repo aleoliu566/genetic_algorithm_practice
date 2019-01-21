@@ -11,8 +11,8 @@ from copy import deepcopy
 
 CROSSOVER_RATE = 0.8
 MUTATION_RATE = 0.1
-ITERATION_TIME = 2000     #迭代次數
-NUMBER_OF_GENETIC = 10   #基因數量
+ITERATION_TIME = 3000     #迭代次數
+NUMBER_OF_GENETIC = 40   #基因數量
 NUMBER_OF_WORKER = 35    #工作人數
 WORK_DAY = 28
 
@@ -132,7 +132,7 @@ def checkwordday(genetic_list,list_worker):
             workDay += 1
       holiday = 0
       workDay = 0
-    if(i < 28):
+    if(i < WORK_DAY):
       if(genetic_list[list_worker][i] == 3):
         holiday+=1
       else:
