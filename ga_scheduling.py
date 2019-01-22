@@ -11,8 +11,8 @@ from copy import deepcopy
 
 CROSSOVER_RATE = 0.8
 MUTATION_RATE = 0.1
-ITERATION_TIME = 2000    #迭代次數
-NUMBER_OF_GENETIC = 30   #基因數量
+ITERATION_TIME = 3000    #迭代次數
+NUMBER_OF_GENETIC = 200   #基因數量
 NUMBER_OF_WORKER = 35    #工作人數
 WORK_DAY = 28
 
@@ -22,7 +22,7 @@ best_genetic = []
 best_genetic_target_value = 1000000000000
 
 def shiftScheduleScore(genetic, needToReachNumber, workType, showValue=False):
-  score = 10
+  score = 7
   shift_numbers = [0]*28
 
   # 記錄每天日班有多少人排班
@@ -117,6 +117,7 @@ def check_each_worker_schedule_meet_the_law_of_labor(teamSchedule, showValue):
         elif(everWeekWorkDay<2):
           NotMeetWorkerLawWeekNumber+=1
         everWeekWorkDay = 0
+    everTwoWeekWorkDay = 0
 
   score = score * NotMeetWorkerLawWeekNumber
   if(showValue):
@@ -257,53 +258,44 @@ def muation():
 # 2.員工兩週最多工作11天
 def generateEachWorker():
   each_worker = []
-
+  work_type = 0
   workDay = 0 # 工作天數
   holiday = 0 # 休假數量
-  week = 1 # 第幾周(預設第1周開始)
-  twoweek_workDay = 0 # 2個禮拜的工作天(第1、2周；第2、3周；第3、4周 三種可能)
-  
+  twoWeeksWorkDay = 0 # 2個禮拜的工作天(第1、2周；第2、3周；第3、4周 三種可能)
+  lastWeekWorkDay = 0
+
   for i in range(4):
-    for j in range(7):#生成1周的班表
-      # 休假數量=2 後面就只能排0 1 2
+    for j in range(7):
 
-      # 家彥安安，我把這邊改成隨機插入一天是休假，不是補在最後一天，感覺會稍好點，你可以參考看看
-      if(holiday >= 2):
-        random_index = randrange(len(each_worker))
-        each_worker[random_index] = randint(0,2)
-        workDay+=1
-      # 工作天數量=6或2個禮拜的工作天=11時後面就只能排3
-      elif(workDay >= 6 or twoweek_workDay >= 11):
-        random_index = randrange(len(each_worker))
-        each_worker[random_index] = 3
-        holiday+=1
+      if(holiday>=4):
+        work_type = int(randint(0,2))
+      elif(workDay>=6):
+        work_type = 3
+      else: # random時給定一個比例
+        type = [0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 3]
+        work_type = choices( type )[0]
+        # work_type = int(randint(0,3))
 
-      # if(holiday == 2):#休假數量=5後面就只能排0 1 2
-      #   work_type = int(randint(0,2))
-      #   workDay+=1
-      # elif(workDay == 6 or twoweek_workDay == 11):#工作天數量=6或2個禮拜的工作天=11時後面就只能排3
-      #   work_type = 3
-      #   holiday+=1
-      # else:
-      work_type = int(randint(0,3))
-      if(work_type==3):
-        holiday+=1
-      else:
-        workDay+=1
-        if(week != 1):
-          twoweek_workDay+=1
-        
+      if(work_type == 3):
+        holiday += 1
+      elif(work_type != 3):
+        workDay +=1
+
       each_worker.append(work_type)
 
-    if(week == 1): # 紀錄前一個禮拜的工作天數
-      twoweek_workDay+=workDay
-    else:
-      twoweek_workDay = 0 # 除了第1個禮拜都先歸零
-      twoweek_workDay+=workDay
-    holiday=0
+      if(i*7+j+1==14 or i*7+j+1==21 or i*7+j+1==28): # 第二週、第三週、第四週
+        twoWeeksWorkDay = lastWeekWorkDay + workDay
+        if(twoWeeksWorkDay >= 11):
+          for k in range(twoWeeksWorkDay - 11):
+            random_index = randrange(len(each_worker)-7, len(each_worker))
+            while(each_worker[random_index] == 3):
+              random_index = randrange(len(each_worker)-7, len(each_worker))
+            each_worker[random_index] = 3
+
+      if((j+1)%7 == 0):
+        lastWeekWorkDay = workDay
     workDay = 0
-  week+=1 # 進入下一個禮拜
-  
+    holiday = 0
   return each_worker
 
 def initializeGenetic():
@@ -373,7 +365,13 @@ def main():
     selectNextGeneration(i+1) # 選擇: 選擇下一代基因
     crossover() # 交配
     crossover()
+    crossover()
+    crossover()
+    crossover()
+    crossover()
     muation() # 突變 => 突變一點太小了，這邊直接突變一個工人的全部
+    muation()
+    muation()
     muation()
 
 if __name__ == "__main__":
