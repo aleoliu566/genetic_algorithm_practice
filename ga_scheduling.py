@@ -19,7 +19,7 @@ best_genetic = []
 best_genetic_target_value = 100000000000
 
 def shiftScheduleScore(genetic, needToReachNumber, workType, showValue=False):
-  score = 10
+  score = 15
   shift_numbers = [0]*28
 
   # 記錄每天日班有多少人排班
@@ -45,16 +45,15 @@ def three_work_type_score(teamSchedule,showValue):
   score = dayShiftScore + laterShiftScore + graveShiftScore
   return score
 
-def restrict_dayoff_work(genetic_list, number_of_worker, work_day):
+def restrict_dayoff_work(genetic_list, number_of_worker, work_day, showValue):
   # 避免安排休假-工作-休假
   # 3 + (0,1,2) + 3
 
   penalty = 0
-
+  count = 0
   for i in range(number_of_worker):
     for j in range(0,work_day-2):
 
-      count = 0
 
       day1 = genetic_list[i][j]
       day2 = genetic_list[i][j+1]
@@ -67,17 +66,19 @@ def restrict_dayoff_work(genetic_list, number_of_worker, work_day):
         else: # day2 == 0,1,2
           count += 1
 
-  penalty = 10*count
+  penalty = count * 1
+  if(showValue):
+    print('休假-工作-休假的次數：', count)
   return penalty
 
-def restrict_night_day(genetic_list, number_of_worker, work_day):
+def restrict_night_day(genetic_list, number_of_worker, work_day, showValue):
   # 避免晚班-早班
   # (1,2) + 0
 
+  count = 0
   for i in range(number_of_worker):
     for j in range(0,work_day-1):
 
-      count = 0
 
       day1 = genetic_list[i][j]
       day2 = genetic_list[i][j+1]
@@ -85,13 +86,14 @@ def restrict_night_day(genetic_list, number_of_worker, work_day):
       if (day1==1) or (day1==2):
         if day2==0:
           count += 1
-
-  penalty = count*10
+  if(showValue):
+    print('早班接晚班的次數：', count)
+  penalty = count * 2
   return penalty
 
 # 檢查員工一週最多工作6天和兩週最多工作11天
 def check_each_worker_schedule_meet_the_law_of_labor(teamSchedule, showValue):
-  score = 15
+  score = 20
   NotMeetWorkerLawWeekNumber = 0   # 所有勞工沒有符合勞基法的週數
 
   everWeekWorkDay = 0
@@ -133,7 +135,7 @@ def targetFunction(teamSchedule, showValue=False):
     day_off.append(len([i for i in teamSchedule[i] if i == 3])) # 休假次數
 
   ShiftNumberBasicScore = three_work_type_score(teamSchedule,showValue)
-  Penalty = restrict_dayoff_work(teamSchedule, NUMBER_OF_WORKER, WORK_DAY)+restrict_night_day(teamSchedule, NUMBER_OF_WORKER, WORK_DAY)
+  Penalty = restrict_dayoff_work(teamSchedule, NUMBER_OF_WORKER, WORK_DAY, showValue)+restrict_night_day(teamSchedule, NUMBER_OF_WORKER, WORK_DAY, showValue)
   LawOfJobPenalty = check_each_worker_schedule_meet_the_law_of_labor(teamSchedule, showValue)
 
   target_value = round(variance(day_shift)+variance(later_shift)+variance(grave_shift)+variance(day_off), 10) + ShiftNumberBasicScore + Penalty + LawOfJobPenalty
