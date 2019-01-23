@@ -19,7 +19,7 @@ best_genetic = []
 best_genetic_target_value = 100000000000
 
 def shiftScheduleScore(genetic, needToReachNumber, workType, showValue=False):
-  score = 7
+  score = 10
   shift_numbers = [0]*28
 
   # 記錄每天日班有多少人排班
@@ -91,7 +91,7 @@ def restrict_night_day(genetic_list, number_of_worker, work_day):
 
 # 檢查員工一週最多工作6天和兩週最多工作11天
 def check_each_worker_schedule_meet_the_law_of_labor(teamSchedule, showValue):
-  score = 10
+  score = 15
   NotMeetWorkerLawWeekNumber = 0   # 所有勞工沒有符合勞基法的週數
 
   everWeekWorkDay = 0
@@ -277,14 +277,14 @@ def selectNextGeneration(number_of_generation):
     temp_all_genetic.append(all_genetic[x[0]][:] )
   all_genetic = temp_all_genetic[:]
 
-  for i in range(NUMBER_OF_GENETIC): # 印出genetic 變異數
-    targetValue = targetFunction(all_genetic[i])#, True)
+  for i in range(NUMBER_OF_GENETIC):
+    targetValue = targetFunction(all_genetic[i])
 
     # 記錄最好的基因
     if(best_genetic_target_value > targetValue ):
       best_genetic = deepcopy(all_genetic[i])
       best_genetic_target_value = targetFunction(best_genetic)
-  if(number_of_generation%20 == 0 or number_of_generation == 1):
+  if(number_of_generation%10 == 0 or number_of_generation == 1):
     print('\n','======================= ITERATION ', number_of_generation ,' =======================')
     print('\n','----- Best Genetic Target Value: ', best_genetic_target_value, '-----')
     targetFunction(best_genetic, True)
@@ -294,10 +294,10 @@ def main():
   initializeGenetic() # 初始化: 建立所有基因
   for i in range(ITERATION_TIME):
     selectNextGeneration(i+1) # 選擇: 選擇下一代基因
-    for j in range(4):
-      crossover() # 交配
-    for j in range(4):
+    for j in range(7):
       muation() # 突變 => 突變一點太小了，這邊直接突變一個工人的全部
+    for j in range(7):
+      crossover() # 交配
 
 if __name__ == "__main__":
     main()
