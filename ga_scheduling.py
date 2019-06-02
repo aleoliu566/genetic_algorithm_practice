@@ -9,7 +9,7 @@ from copy import deepcopy
 CROSSOVER_RATE = 0.8
 MUTATION_RATE = 0.1
 ITERATION_TIME = 3000    #迭代次數
-NUMBER_OF_GENETIC = 200  #基因數量
+NUMBER_OF_GENETIC = 100  #基因數量
 NUMBER_OF_WORKER = 35    #工作人數
 WORK_DAY = 28
 
